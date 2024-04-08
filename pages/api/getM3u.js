@@ -185,13 +185,14 @@ const generateM3u = async (ud) => {
                         let chanJwt = jwtTokens.find(x => x.ents.sort().toString() === chanEnts.sort().toString())?.token;
                         if (!chanJwt) {
                             let paramsForJwt = { action: "stream" };
-                            paramsForJwt.epids = chanEnts.map(x => { return { epid: "Subscription", bid: x } });
-                            console.log(paramsForJwt);
-                            chanJwt = await getJWT(paramsForJwt, ud);
-                            while (chanJwt.retry) {
-                                chanJwt = await getJWT(paramsForJwt, ud);
+                            if (ud.ent.length === 1) {
+                                paramsForJwt.epids = [{ epid: "Subscription", bid: ud.ent[0] }];
+                            } else {
+                                paramsForJwt.epids = ud.ent.map(ent => ({ epid: "Subscription", bid: ent }));
                             }
-                            chanJwt = chanJwt.token;
+                            let jwtResult = await getJWT(paramsForJwt, ud);
+                            chanJwt = jwtResult.token;
+
                             jwtTokens.push({
                                 ents: chanEnts,
                                 token: chanJwt
